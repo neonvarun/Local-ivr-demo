@@ -8,7 +8,7 @@ import {
   type SpeechRecognitionSession,
   type SupportedLanguageCode,
 } from './lib/browserSpeech'
-import { translateText } from './lib/translation'
+import { translateText, warmTranslationAssets } from './lib/translation'
 
 type CallLegId = 'english' | 'hindi'
 type CallPhase =
@@ -167,15 +167,28 @@ function formatTimestamp(date: Date): string {
 function App() {
   const [legs, setLegs] = useState<Record<CallLegId, CallLegState>>(INITIAL_LEGS)
   const [browserSupport] = useState<BrowserSpeechSupport>(INITIAL_BROWSER_SUPPORT)
+  const [translationStatus, setTranslationStatus] = useState<
+    'loading' | 'ready' | 'error'
+  >('loading')
   const [isDebugOpen, setIsDebugOpen] = useState(false)
   const [activeLegId, setActiveLegId] = useState<CallLegId | null>(null)
   const [events, setEvents] = useState<DeliveryEvent[]>([])
   const activeRecognitionRef = useRef<SpeechRecognitionSession | null>(null)
 
   useEffect(() => {
+    void warmTranslationAssets()
+      .then(() => {
+        setTranslationStatus('ready')
+      })
+      .catch(() => {
+        setTranslationStatus('error')
+      })
+
     return () => {
       activeRecognitionRef.current?.stop()
-      window.speechSynthesis.cancel()
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
     }
   }, [])
 
@@ -183,18 +196,27 @@ function App() {
     () => [
       {
         label: 'Speech recognition',
-        value: browserSupport.speechRecognition ? 'Browser voice capture ready' : 'Text fallback enabled',
+        value: browserSupport.speechRecognition
+          ? 'Browser-local voice capture ready'
+          : 'Text fallback enabled',
       },
       {
         label: 'Speech playback',
-        value: browserSupport.speechSynthesis ? 'Browser native voices available' : 'Visual-only playback fallback',
+        value: browserSupport.speechSynthesis
+          ? 'Browser-local voice playback ready'
+          : 'Visual-only playback fallback',
       },
       {
         label: 'Translation path',
-        value: 'Public demo endpoint via client adapter',
+        value:
+          translationStatus === 'loading'
+            ? 'Loading bundled local translation assets'
+            : translationStatus === 'ready'
+              ? 'Bundled local translation assets ready'
+              : 'Local translation assets unavailable',
       },
     ],
-    [browserSupport],
+    [browserSupport, translationStatus],
   )
 
   function updateLeg(legId: CallLegId, updater: (current: CallLegState) => CallLegState) {
@@ -428,9 +450,9 @@ function App() {
           <p className="eyebrow">SuperAI Polaris interview demo</p>
           <h1>Local-first English-Hindi IVR translation prototype</h1>
           <p className="hero-text">
-            This browser demo simulates two concurrent IVR call legs. Speech capture and playback
-            happen on the client, while translation flows through a swappable adapter so the app can
-            evolve into a fully sovereign runtime later.
+            This browser demo simulates two concurrent Interactive Voice Response call legs.
+            Translation runs through bundled local assets in the browser, while speech capture and
+            playback stay client-side for a GitHub Pages-safe prototype.
           </p>
         </div>
         <div className="hero-actions">
@@ -439,8 +461,8 @@ function App() {
           </button>
           <div className="stack-note">
             <span className="stack-note-label">Demo note</span>
-            Translation uses a public no-secret endpoint for live credibility. Speech capture and
-            playback stay in the browser.
+            Translation uses bundled local assets. Speech capture and playback use browser-local
+            engines so the prototype stays client-side and static-hostable.
           </div>
         </div>
       </header>

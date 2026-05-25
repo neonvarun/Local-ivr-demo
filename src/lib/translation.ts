@@ -5,32 +5,90 @@ type TranslationResult = {
   provider: string
 }
 
-const PHRASEBOOK: Record<string, string> = {
-  'hello': 'नमस्ते',
-  'how are you?': 'आप कैसे हैं?',
-  'how are you': 'आप कैसे हैं?',
-  'thank you': 'धन्यवाद',
-  'i need help': 'मुझे मदद चाहिए',
-  'please wait': 'कृपया प्रतीक्षा करें',
-  'where is the office?': 'कार्यालय कहाँ है?',
-  'the meeting starts now': 'बैठक अब शुरू होती है',
-  'नमस्ते': 'Hello',
-  'आप कैसे हैं?': 'How are you?',
-  'आप कैसे हैं': 'How are you?',
-  'धन्यवाद': 'Thank you',
-  'मुझे मदद चाहिए': 'I need help',
-  'कृपया प्रतीक्षा करें': 'Please wait',
-  'कार्यालय कहाँ है?': 'Where is the office?',
-  'बैठक अब शुरू होती है': 'The meeting starts now',
+type LocalTranslationAsset = {
+  exact: Record<string, string>
+  phrases: Array<{ from: string; to: string }>
+  tokens: Record<string, string>
 }
+
+type PairKey = 'en-hi' | 'hi-en'
+
+const ASSET_BASE = import.meta.env.BASE_URL
+
+const ASSET_PATHS: Record<PairKey, string> = {
+  'en-hi': `${ASSET_BASE}models/translation/en-hi.json`,
+  'hi-en': `${ASSET_BASE}models/translation/hi-en.json`,
+}
+
+const translationCache = new Map<PairKey, LocalTranslationAsset>()
 
 function normalise(text: string) {
   return text.trim().toLowerCase()
 }
 
-function decodeHtmlEntities(text: string) {
-  const parser = new DOMParser()
-  return parser.parseFromString(text, 'text/html').documentElement.textContent ?? text
+function getPairKey(
+  sourceLanguage: SupportedLanguageCode,
+  targetLanguage: SupportedLanguageCode,
+): PairKey {
+  return `${sourceLanguage}-${targetLanguage}` as PairKey
+}
+
+async function loadTranslationAsset(pairKey: PairKey): Promise<LocalTranslationAsset> {
+  const cached = translationCache.get(pairKey)
+  if (cached) {
+    return cached
+  }
+
+  const response = await fetch(ASSET_PATHS[pairKey], { cache: 'force-cache' })
+
+  if (!response.ok) {
+    throw new Error(`Local translation asset ${pairKey} could not be loaded.`)
+  }
+
+  const payload = (await response.json()) as LocalTranslationAsset
+  translationCache.set(pairKey, payload)
+  return payload
+}
+
+function replacePhrases(text: string, asset: LocalTranslationAsset) {
+  let next = normalise(text)
+
+  for (const phrase of asset.phrases) {
+    if (!next.includes(phrase.from)) {
+      continue
+    }
+
+    next = next.replaceAll(phrase.from, phrase.to)
+  }
+
+  return next
+}
+
+function translateTokenStream(text: string, asset: LocalTranslationAsset) {
+  return text
+    .split(/(\s+|[,.!?;:])/)
+    .map((part) => {
+      const lowered = normalise(part)
+      if (!lowered) {
+        return part
+      }
+
+      return asset.tokens[lowered] ?? part
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function postProcess(text: string) {
+  return text
+    .replace(/\s+([,.!?;:])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export async function warmTranslationAssets() {
+  await Promise.all([loadTranslationAsset('en-hi'), loadTranslationAsset('hi-en')])
 }
 
 export async function translateText(
@@ -50,41 +108,29 @@ export async function translateText(
     }
   }
 
-  const phrasebookMatch = PHRASEBOOK[normalise(trimmedText)]
+  const pairKey = getPairKey(sourceLanguage, targetLanguage)
+  const asset = await loadTranslationAsset(pairKey)
+  const loweredInput = normalise(trimmedText)
 
-  try {
-    const response = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmedText)}&langpair=${sourceLanguage}|${targetLanguage}`,
-    )
-
-    if (!response.ok) {
-      throw new Error(`Translation service returned ${response.status}.`)
-    }
-
-    const payload = (await response.json()) as {
-      responseData?: { translatedText?: string }
-    }
-
-    const translatedText = payload.responseData?.translatedText?.trim()
-    if (!translatedText) {
-      throw new Error('Translation service returned an empty response.')
-    }
-
+  const exactMatch = asset.exact[loweredInput]
+  if (exactMatch) {
     return {
-      text: decodeHtmlEntities(translatedText),
-      provider: 'MyMemory public demo endpoint',
+      text: exactMatch,
+      provider: 'Bundled local translation asset',
     }
-  } catch (error) {
-    if (phrasebookMatch) {
-      return {
-        text: phrasebookMatch,
-        provider: 'Local phrasebook fallback',
-      }
-    }
+  }
 
-    const message = error instanceof Error ? error.message : 'Unknown translation error.'
-    throw new Error(`Translation could not complete. ${message}`, {
-      cause: error,
-    })
+  const phraseExpanded = replacePhrases(trimmedText, asset)
+  const translated = postProcess(translateTokenStream(phraseExpanded, asset))
+
+  if (!translated || translated === loweredInput) {
+    throw new Error(
+      'The bundled local translation asset could not confidently translate this sentence. Try a shorter sentence.',
+    )
+  }
+
+  return {
+    text: translated,
+    provider: 'Bundled local translation asset',
   }
 }

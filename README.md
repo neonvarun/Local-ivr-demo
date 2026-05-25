@@ -1,6 +1,6 @@
 # Local-First English-Hindi IVR Demo
 
-A browser-based prototype for the SuperAI Polaris assignment. The app simulates a double-sided IVR call where one caller speaks English and the other speaks Hindi. Speech capture and playback stay in the browser, while translation uses a public no-secret endpoint for live demo credibility.
+A browser-based prototype for the SuperAI Polaris assignment. The app simulates a double-sided IVR call where one caller speaks English and the other speaks Hindi. Speech capture and playback stay in the browser, while translation uses bundled local assets served by the static site.
 
 ## What the demo shows
 
@@ -16,7 +16,7 @@ A browser-based prototype for the SuperAI Polaris assignment. The app simulates 
 - `React 19` + `TypeScript` + `Vite`
 - Browser Speech Recognition API for STT when supported
 - Browser Speech Synthesis API for TTS when supported
-- Public translation endpoint with local phrase fallback for the demo
+- Bundled local translation assets for the demo
 - Static frontend deployment on Cloudflare Pages
 
 ## Local development
@@ -114,7 +114,7 @@ npm run deploy:pages
 ## Demo limitations
 
 - This v1 is a browser simulation, not a PSTN or SIP-connected IVR
-- Translation currently depends on a public endpoint, so it is not fully offline yet
+- Translation now uses bundled local assets, but speech quality still depends on browser speech capabilities
 - Speech quality and recognition accuracy vary by browser, microphone quality, and installed voices
 - Hindi playback quality depends on whether the local system exposes a suitable Hindi voice
 

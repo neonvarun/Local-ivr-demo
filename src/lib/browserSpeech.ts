@@ -224,7 +224,10 @@ export async function speakText(text: string, language: SupportedLanguageCode) {
     utterance.voice = selectedVoice ?? null
 
     utterance.onend = () => {
-      resolve({ voiceName: selectedVoice?.name ?? 'Browser default voice' })
+      resolve({
+        voiceName:
+          language === 'hi' ? 'Local browser Hindi voice engine' : 'Local browser English voice engine',
+      })
     }
 
     utterance.onerror = () => {

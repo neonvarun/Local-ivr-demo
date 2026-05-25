@@ -1,0 +1,47 @@
+{
+  "exact": {
+    "hello": "नमस्ते",
+    "how are you": "आप कैसे हैं",
+    "how are you?": "आप कैसे हैं?",
+    "thank you": "धन्यवाद",
+    "i need help": "मुझे मदद चाहिए",
+    "please wait": "कृपया प्रतीक्षा करें",
+    "what is your name": "आपका नाम क्या है",
+    "what is your name?": "आपका नाम क्या है?",
+    "where is the office": "कार्यालय कहाँ है",
+    "where is the office?": "कार्यालय कहाँ है?",
+    "the meeting starts now": "बैठक अब शुरू होती है"
+  },
+  "phrases": [
+    { "from": "what is your name", "to": "आपका नाम क्या है" },
+    { "from": "how are you", "to": "आप कैसे हैं" },
+    { "from": "please wait", "to": "कृपया प्रतीक्षा करें" },
+    { "from": "i need help", "to": "मुझे मदद चाहिए" },
+    { "from": "where is the office", "to": "कार्यालय कहाँ है" },
+    { "from": "the meeting starts now", "to": "बैठक अब शुरू होती है" }
+  ],
+  "tokens": {
+    "hello": "नमस्ते",
+    "hi": "नमस्ते",
+    "thanks": "धन्यवाद",
+    "thank": "धन्यवाद",
+    "you": "आप",
+    "your": "आपका",
+    "name": "नाम",
+    "what": "क्या",
+    "is": "है",
+    "how": "कैसे",
+    "are": "हैं",
+    "i": "मैं",
+    "need": "चाहिए",
+    "help": "मदद",
+    "please": "कृपया",
+    "wait": "प्रतीक्षा करें",
+    "where": "कहाँ",
+    "office": "कार्यालय",
+    "the": "",
+    "meeting": "बैठक",
+    "starts": "शुरू होती है",
+    "now": "अब"
+  }
+}
