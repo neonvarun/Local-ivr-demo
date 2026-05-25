@@ -197,13 +197,13 @@ function App() {
       {
         label: 'Speech recognition',
         value: browserSupport.speechRecognition
-          ? 'Browser-local voice capture ready'
+          ? 'Local voice capture ready'
           : 'Text fallback enabled',
       },
       {
         label: 'Speech playback',
         value: browserSupport.speechSynthesis
-          ? 'Browser-local voice playback ready'
+          ? 'Local voice playback ready'
           : 'Visual-only playback fallback',
       },
       {
@@ -448,21 +448,21 @@ function App() {
       <header className="hero">
         <div className="hero-copy">
           <p className="eyebrow">SuperAI Polaris interview demo</p>
-          <h1>Local-first English-Hindi IVR translation prototype</h1>
+          <h1>English-Hindi IVR translation demo</h1>
           <p className="hero-text">
-            This browser demo simulates two concurrent Interactive Voice Response call legs.
-            Translation runs through bundled local assets in the browser, while speech capture and
-            playback stay client-side for a GitHub Pages-safe prototype.
+            A browser-based demonstration of a double-sided Interactive Voice Response workflow for
+            English and Hindi speakers. Translation runs through bundled local assets, while speech
+            capture and playback remain client-side.
           </p>
         </div>
         <div className="hero-actions">
           <button type="button" className="debug-toggle" onClick={() => setIsDebugOpen((open) => !open)}>
-            {isDebugOpen ? 'Hide reviewer panel' : 'Open reviewer panel'}
+            {isDebugOpen ? 'Hide details' : 'Show details'}
           </button>
           <div className="stack-note">
-            <span className="stack-note-label">Demo note</span>
+            <span className="stack-note-label">Runtime</span>
             Translation uses bundled local assets. Speech capture and playback use browser-local
-            engines so the prototype stays client-side and static-hostable.
+            engines.
           </div>
         </div>
       </header>
@@ -572,7 +572,7 @@ function App() {
           <div className="reviewer-header">
             <div>
               <p className="leg-kicker">Reviewer view</p>
-              <h3>Pipeline debug panel</h3>
+              <h3>Delivery details</h3>
             </div>
             <button type="button" className="debug-toggle ghost" onClick={() => setIsDebugOpen(false)}>
               Collapse
