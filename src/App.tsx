@@ -476,7 +476,7 @@ function App() {
         ))}
       </section>
 
-      <main className="workspace">
+      <main className={`workspace ${isDebugOpen ? 'with-details' : 'without-details'}`}>
         <section className="call-grid" aria-label="Double-sided IVR simulation">
           {LEG_IDS.map((legId) => {
             const leg = legs[legId]
@@ -568,15 +568,13 @@ function App() {
           })}
         </section>
 
-        <aside className={`reviewer-panel ${isDebugOpen ? 'open' : ''}`}>
+        {isDebugOpen ? (
+          <aside className="reviewer-panel open">
           <div className="reviewer-header">
             <div>
-              <p className="leg-kicker">Reviewer view</p>
-              <h3>Delivery details</h3>
+              <p className="leg-kicker">Details</p>
+              <h3>Session details</h3>
             </div>
-            <button type="button" className="debug-toggle ghost" onClick={() => setIsDebugOpen(false)}>
-              Collapse
-            </button>
           </div>
 
           <section className="reviewer-section">
@@ -640,7 +638,8 @@ function App() {
               )}
             </div>
           </section>
-        </aside>
+          </aside>
+        ) : null}
       </main>
     </div>
   )
